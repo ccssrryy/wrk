@@ -57,6 +57,7 @@ typedef struct connection {
     char *request;
     size_t length;
     size_t written;
+    bool connected;
     uint64_t pending;
     buffer headers;
     buffer body;

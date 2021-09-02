@@ -238,6 +238,7 @@ static int connect_socket(thread *thread, connection *c) {
     struct aeEventLoop *loop = thread->loop;
     int fd, flags;
 
+    c->connected = 0;
     fd = socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
 
     flags = fcntl(fd, F_GETFL, 0);
@@ -394,7 +395,12 @@ static void socket_writeable(aeEventLoop *loop, int fd, void *data, int mask) {
 
     if (!c->written) {
         if (cfg.dynamic) {
-            script_request(thread->L, &c->request, &c->length);
+            if (!c->connected) {
+                script_init_request(thread->L, &c->request, &c->length);
+                c->connected = 1;
+            } else {
+                script_request(thread->L, &c->request, &c->length);
+            }
         }
         c->start   = time_us();
         c->pending = cfg.pipeline;
